@@ -26,20 +26,23 @@ app.get('/api/persons', (request, response, next) => {
 })
 
 app.get('/info', (request, response, next) => {
-    const date = new Date()
-    const info = `<p>Phonebook has info for ${persons.length} people</p><p>${date}</p>`
-    return response.send(info)
+    Person.countDocuments({})
+        .then(count => {
+            const date = new Date()
+            response.send(`<p>Phonebook has info for ${count} people</p><p>${date}</p>`)
+        }).catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (request, response, next) => {
     const id = request.params.id
-    const person = persons.find(person => person.id === id)
-    if (person) {
-        return response.json(person)
-    } else {
-        return response.status(404).end()
-    }
-
+    Person.findById(id)
+        .then(person => {
+            if (person) {
+                return response.json(person)
+            } else {
+                return response.status(404).end()
+            }
+        }).catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
