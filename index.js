@@ -9,21 +9,30 @@ app.use(express.static('dist'))
 morgan.token('body', function (req, res) { return req.body ? JSON.stringify(req.body) : '' })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-let persons = []
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' })
+    }
 
-app.get('/api/persons', (request, response) => {
+    next(error)
+}
+
+app.use(errorHandler)
+
+app.get('/api/persons', (request, response, next) => {
     Person.find({}).then(persons => {
         response.json(persons)
-    })
+    }).catch(error => next(error))
 })
 
-app.get('/info', (request, response) => {
+app.get('/info', (request, response, next) => {
     const date = new Date()
     const info = `<p>Phonebook has info for ${persons.length} people</p><p>${date}</p>`
     return response.send(info)
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
     const id = request.params.id
     const person = persons.find(person => person.id === id)
     if (person) {
@@ -34,19 +43,15 @@ app.get('/api/persons/:id', (request, response) => {
 
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
     const id = request.params.id
     Person.findByIdAndDelete(id)
         .then(result => {
             response.status(204).end()
-        })
-        .catch(error => {
-            console.error(error)
-            response.status(400).json({ error: 'malformatted id' })
-        })
+        }).catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const body = request.body
     if (!body.name) {
         return response.status(400).json({ 
@@ -77,7 +82,7 @@ app.post('/api/persons', (request, response) => {
     }) 
 })
 
-app.put('/api/persons/:id', (request, response) => {
+app.put('/api/persons/:id', (request, response, next) => {
     const id = request.params.id
     const body = request.body
 
