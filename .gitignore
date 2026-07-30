@@ -1,6 +1,7 @@
-# ignore the node_modules folder
+# ignore folders
 node_modules/
+rest/
 
-# ignore .rest files
+# ignore files
 *.rest
 *.env
