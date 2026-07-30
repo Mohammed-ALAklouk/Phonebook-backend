@@ -18,7 +18,6 @@ const errorHandler = (error, request, response, next) => {
     next(error)
 }
 
-app.use(errorHandler)
 
 app.get('/api/persons', (request, response, next) => {
     Person.find({}).then(persons => {
@@ -65,12 +64,13 @@ app.post('/api/persons', (request, response, next) => {
         })
     }
 
-    // const existingPerson = persons.find(person => person.name === body.name)
-    // if (existingPerson) {
-    //     return response.status(400).json({ 
-    //         error: 'name must be unique' 
-    //     })
-    // }
+    Person.findOne({ name: body.name }).then(existingPerson => {
+        if (existingPerson) {
+            return response.status(400).json({ 
+                error: 'name must be unique' 
+            })
+        }
+    })
 
     const newPerson = new Person({
         name: body.name,
@@ -92,18 +92,16 @@ app.put('/api/persons/:id', (request, response, next) => {
         })
     }
 
-    const person = persons.find(person => person.id === id)
-    if (!person) {
-        return response.status(404).json({
-            error: 'person not found'
-        })
-    }
-
-    const updatedPerson = { ...person, number: body.number }
-    persons = persons.map(person => person.id === id ? updatedPerson : person)
-
-    return response.json(updatedPerson)
+    Person.findByIdAndUpdate(id, { number: body.number }, { new: true, runValidators: true, context: 'query' })
+        .then(updatedPerson => {
+            if (!updatedPerson) {
+                return response.status(404).json({ error: 'person not found' })
+            }
+            return response.json(updatedPerson)
+        }).catch(error => next(error))
 })
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
