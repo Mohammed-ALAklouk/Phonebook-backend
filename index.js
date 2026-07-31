@@ -74,17 +74,18 @@ app.post('/api/persons', (request, response, next) => {
             return response.status(400).json({ 
                 error: 'name must be unique' 
             })
+        } 
+        else {
+            const newPerson = new Person({
+                name: body.name,
+                number: body.number,
+            })
+
+            newPerson.save().then(savedPerson => {
+                return response.status(201).json(savedPerson)
+            }).catch(error => next(error))
         }
     })
-
-    const newPerson = new Person({
-        name: body.name,
-        number: body.number,
-    })
-
-    newPerson.save().then(savedPerson => {
-        return response.status(201).json(savedPerson)
-    }).catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
