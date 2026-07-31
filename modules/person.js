@@ -1,11 +1,11 @@
-const mongoose = require("mongoose") 
+const mongoose = require('mongoose')
 
-mongoose.set("strictQuery", false)
+mongoose.set('strictQuery', false)
 
 const url = process.env.MONGODB_URI
 
 mongoose.connect(url, { family: 4 })
-  .then(result => {
+  .then(() => {
     console.log('connected to MongoDB')
   })
   .catch(error => {
@@ -40,4 +40,4 @@ personSchema.set('toJSON', {
   }
 })
 
-module.exports = mongoose.model("Person", personSchema)
+module.exports = mongoose.model('Person', personSchema)
